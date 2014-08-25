@@ -248,40 +248,70 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
         long readfilelen = 0;
         BufferedRandomAccessFile brafReadFile, brafWriteFile;
 
-        brafReadFile = new BufferedRandomAccessFile("g:/abc.mkv");
+        brafReadFile = new BufferedRandomAccessFile("f:/abc.mp4");
         readfilelen = brafReadFile.initfilelen;
-        brafWriteFile = new BufferedRandomAccessFile("e:/abc", "rw", 10);
-
-        byte buf[] = new byte[1024];
-        int readcount;
-
-        long start = System.currentTimeMillis();
-
-        while((readcount = brafReadFile.read(buf)) != -1) {
-            brafWriteFile.write(buf, 0, readcount);
+//        brafWriteFile = new BufferedRandomAccessFile("e:/abc.mp4", "rw", 10);
+//
+//        byte buf[] = new byte[1024];
+//        int readcount;
+//
+//        long start = System.currentTimeMillis();
+//
+//        while((readcount = brafReadFile.read(buf)) != -1) {
+//            brafWriteFile.write(buf, 0, readcount);
+//        }
+//
+//        brafWriteFile.close();
+//        brafReadFile.close();
+//
+//        System.out.println("BufferedRandomAccessFile Copy & Write File: "
+//                           + brafReadFile.filename
+//                           + "    FileSize: "
+//                           + java.lang.Integer.toString((int)readfilelen >> 1024)
+//                           + " (KB)    "
+//                           + "Spend: "
+//                           +(double)(System.currentTimeMillis()-start) / 1000
+//                           + "(s)");
+        
+        
+        
+        long readfilelen1 = 0;
+        RandomAccessFile brafReadFile1, brafWriteFile1;
+        
+        brafReadFile1 = new RandomAccessFile("f:/abc.mp4","r");
+        readfilelen1 = brafReadFile1.length();
+        brafWriteFile1 = new RandomAccessFile("e:/abc1.mp4", "rw");
+        
+        byte buf1[] = new byte[1024];
+        int readcount1;
+        
+        long start1 = System.currentTimeMillis();
+        
+        while((readcount1 = brafReadFile1.read(buf1)) != -1) {
+        	brafWriteFile1.write(buf1, 0, readcount1);
         }
-
-        brafWriteFile.close();
-        brafReadFile.close();
-
+        
+        brafWriteFile1.close();
+        brafReadFile1.close();
+        
         System.out.println("BufferedRandomAccessFile Copy & Write File: "
-                           + brafReadFile.filename
-                           + "    FileSize: "
-                           + java.lang.Integer.toString((int)readfilelen >> 1024)
-                           + " (KB)    "
-                           + "Spend: "
-                           +(double)(System.currentTimeMillis()-start) / 1000
-                           + "(s)");
+        		+ "f:/abc1.mp4"
+        		+ "    FileSize: "
+        		+ java.lang.Integer.toString((int)readfilelen1 >> 1024)
+        		+ " (KB)    "
+        		+ "Spend: "
+        		+(double)(System.currentTimeMillis()-start1) / 1000
+        		+ "(s)");
 
-        java.io.FileInputStream fdin = new java.io.FileInputStream("g:/abc.mkv");
+        java.io.FileInputStream fdin = new java.io.FileInputStream("f:/abc.mp4");
         java.io.BufferedInputStream bis = new java.io.BufferedInputStream(fdin, 1024);
         java.io.DataInputStream dis = new java.io.DataInputStream(bis);
 
-        java.io.FileOutputStream fdout = new java.io.FileOutputStream("e:/abcd");
+        java.io.FileOutputStream fdout = new java.io.FileOutputStream("e:/abc2.mp4");
         java.io.BufferedOutputStream bos = new java.io.BufferedOutputStream(fdout, 1024);
         java.io.DataOutputStream dos = new java.io.DataOutputStream(bos);
 
-        start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
 
         for (int i = 0; i < readfilelen; i++) {
             dos.write(dis.readByte());
@@ -291,7 +321,7 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
         dis.close();
 
         System.out.println("DataBufferedios Copy & Write File: "
-                           + brafReadFile.filename
+                           + "bac"
                            + "    FileSize: "
                            + java.lang.Integer.toString((int)readfilelen >> 1024)
                            + " (KB)    "

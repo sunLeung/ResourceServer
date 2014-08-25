@@ -6,8 +6,10 @@ import java.io.RandomAccessFile;
 
 public class Test {
 	public static void main(String[] args) throws IOException {
-		System.out.println(MD5Util.getFileMD5String(new File("e:/test.zip")));
-		System.out.println(MD5Util.getFileMD5String(new File("e:/b2")));
+//		System.out.println(MD5Util.getFileMD5String(new File("e:/abc.mp4")));
+		System.out.println(MD5Util.getFileMD5String(new File("f:/abc.mp4")));
+		System.out.println(MD5Util.getFileMD5String(new File("F:/download/abc.mp4")));
+//		System.out.println(MD5Util.getFileMD5String(new File("e:/abc2.mp4")));
 ////		
 //		try {
 //			for(int i=0;i<5;i++){

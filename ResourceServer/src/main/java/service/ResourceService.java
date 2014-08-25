@@ -29,64 +29,132 @@ public class ResourceService {
 		// params.put("resourceid", String.valueOf(resourceid));
 		// String result=HttpUtils.doGet(url, params);
 
-		File file = null;
+		File file = new File("f:/abc.mp4");
+		RandomAccessFile readFile =new RandomAccessFile(file, "r");
 		resp.reset();
 		resp.setHeader("Accept-Ranges", "bytes");
+		resp.addHeader("Content-Disposition","attachment; filename=\"" + file.getName() + "\"");
+		resp.setContentType(CommonUtil.setContentType(file.getName()));
 		int bufferSize = 1024;
 		long begin = 0;
 		long end = 0;
-		long fileLength = 0;
+		long fileLength = readFile.length();
 		long contentLength = 0;
 		String rangeBytes = req.getHeader("Range");
-		// 判断是否从某个位置开始传输
 		if (StringUtils.isNotBlank(rangeBytes)) {
 			rangeBytes = rangeBytes.trim();
 			rangeBytes = rangeBytes.replaceAll("bytes=", "");
 			String[] range = rangeBytes.split("-");
 			if (range.length == 1) {// bytes=969998336-
 				begin = Long.valueOf(range[0].trim());
-				end = fileLength - 1;
+				end = fileLength-1;
 				contentLength = end - begin;
 			} else if (range.length == 2) {
 				begin = Long.valueOf(range[0].trim());
 				end = Long.valueOf(range[1].trim());
-				contentLength = end - begin;
+				if(begin<end){
+					contentLength = end - begin + 1;
+				}else{
+					begin=0;
+					end=fileLength-1;
+					contentLength = fileLength - begin;
+				}
 			}
-			String contentRange = new StringBuffer("bytes ").append(begin)
-					.append("-").append(end).append("/").append(fileLength)
-					.toString();
-			resp.setHeader("Content-Range", contentRange);
-			resp.setStatus(javax.servlet.http.HttpServletResponse.SC_PARTIAL_CONTENT);
-		} else {// 从0开始传输
-			contentLength = fileLength;
-			end = fileLength - 1;
+		} else {
+			begin=0;
+			end=fileLength-1;
+			contentLength = fileLength - begin;
 		}
+		String contentRange = new StringBuffer("bytes ").append(begin)
+				.append("-").append(end).append("/").append(fileLength)
+				.toString();
+		resp.setHeader("Content-Range", contentRange);
+		resp.setStatus(javax.servlet.http.HttpServletResponse.SC_PARTIAL_CONTENT);
+		resp.addHeader("Content-Length", String.valueOf(contentLength)); 
 
-		resp.addHeader("Content-Disposition",
-				"attachment; filename=\"" + file.getName() + "\"");
-		resp.setContentType(CommonUtil.setContentType(file.getName()));
-		resp.addHeader("Content-Length", String.valueOf(contentLength));
-		RandomAccessFile raf = null;// 负责读取数据
-		OutputStream os = null;// 写出数据
-		OutputStream out = null;// 缓冲
-		os = resp.getOutputStream();
-		out = new BufferedOutputStream(os);
-		raf = new RandomAccessFile(file, "r");
+		OutputStream os = resp.getOutputStream();
+		OutputStream out = new BufferedOutputStream(os);
 		byte b[] = new byte[bufferSize];
 
-		raf.seek(begin);
-		int n = 0;
-		long readLength = 0;// 记录已读字节数
-		while (readLength <= contentLength - 1024) {// 大部分字节在这里读取
-			n = raf.read(b, 0, 1024);
-			readLength += 1024;
-			out.write(b, 0, n);
-		}
-		if (readLength <= contentLength) {// 余下的不足 1024 个字节在这里读取
-			n = raf.read(b, 0, (int) (contentLength - readLength));
-			out.write(b, 0, n);
+		readFile.seek(begin);
+		while (begin < end) {
+			int len = 0;
+			if (begin + bufferSize < end){
+				len = readFile.read(b);
+			} else {
+				len = readFile.read(b, 0,(int) (end - begin));
+			}
+			out.write(b, 0, len);
+			begin += len;
 		}
 		out.flush();
+		out.close();
+		os.close();
+	}
+	
+	public static void test(HttpServletRequest req,
+			HttpServletResponse resp) throws IOException{
+		File file = new File("f:/abc.mp4");
+		RandomAccessFile readFile =new RandomAccessFile(file, "r");
+		resp.reset();
+		resp.setHeader("Accept-Ranges", "bytes");
+		resp.addHeader("Content-Disposition","attachment; filename=\"" + file.getName() + "\"");
+		resp.setContentType(CommonUtil.setContentType(file.getName()));
+		int bufferSize = 1024;
+		long begin = 0;
+		long end = 0;
+		long fileLength = readFile.length();
+		long contentLength = 0;
+		String rangeBytes = req.getHeader("Range");
+		if (StringUtils.isNotBlank(rangeBytes)) {
+			rangeBytes = rangeBytes.trim();
+			rangeBytes = rangeBytes.replaceAll("bytes=", "");
+			String[] range = rangeBytes.split("-");
+			if (range.length == 1) {// bytes=969998336-
+				begin = Long.valueOf(range[0].trim());
+				end = fileLength-1;
+				contentLength = end - begin;
+			} else if (range.length == 2) {
+				begin = Long.valueOf(range[0].trim());
+				end = Long.valueOf(range[1].trim());
+				if(begin<end){
+					contentLength = end - begin + 1;
+				}else{
+					begin=0;
+					end=fileLength-1;
+					contentLength = fileLength - begin;
+				}
+			}
+		} else {
+			begin=0;
+			end=fileLength;
+			contentLength = fileLength - begin;
+		}
+		String contentRange = new StringBuffer("bytes ").append(begin)
+				.append("-").append(end).append("/").append(fileLength)
+				.toString();
+		resp.setHeader("Content-Range", contentRange);
+		resp.setStatus(javax.servlet.http.HttpServletResponse.SC_PARTIAL_CONTENT);
+		resp.addHeader("Content-Length", String.valueOf(contentLength)); 
+
+		OutputStream os = resp.getOutputStream();
+		OutputStream out = new BufferedOutputStream(os);
+		byte b[] = new byte[bufferSize];
+
+		readFile.seek(begin);
+		while (begin < end) {
+			int len = 0;
+			if (begin + bufferSize < end){
+				len = readFile.read(b);
+			} else {
+				len = readFile.read(b, 0,(int) (end - begin));
+			}
+			out.write(b, 0, len);
+			begin += len;
+		}
+		out.flush();
+		out.close();
+		os.close();
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {

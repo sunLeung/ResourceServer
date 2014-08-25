@@ -2,6 +2,7 @@ apply plugin: 'war'
 apply plugin: 'eclipse-wtp'
 
 webAppDirName = 'webapp'
+[compileJava, javadoc, compileTestJava]*.options*.encoding = 'UTF-8'
 
 repositories { 
 	mavenCentral() 

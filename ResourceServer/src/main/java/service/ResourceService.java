@@ -6,11 +6,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import test.CommonUtil;
+import utils.RespUtils;
 import utils.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,8 +31,9 @@ public class ResourceService {
 		// params.put("uuid", String.valueOf(uuid));
 		// params.put("resourceid", String.valueOf(resourceid));
 		// String result=HttpUtils.doGet(url, params);
-
-		File file = new File("f:/abc.mp4");
+		System.out.println("downloadResource request");
+		String resourceid=reqData.get("resourceid").asText();
+		File file=new File(resourceid);
 		RandomAccessFile readFile =new RandomAccessFile(file, "r");
 		resp.reset();
 		resp.setHeader("Accept-Ranges", "bytes");
@@ -47,91 +51,26 @@ public class ResourceService {
 			String[] range = rangeBytes.split("-");
 			if (range.length == 1) {// bytes=969998336-
 				begin = Long.valueOf(range[0].trim());
-				end = fileLength-1;
+				end = fileLength;
 				contentLength = end - begin;
 			} else if (range.length == 2) {
 				begin = Long.valueOf(range[0].trim());
 				end = Long.valueOf(range[1].trim());
 				if(begin<end){
-					contentLength = end - begin + 1;
+					contentLength = end - begin;
 				}else{
 					begin=0;
-					end=fileLength-1;
-					contentLength = fileLength - begin;
-				}
-			}
-		} else {
-			begin=0;
-			end=fileLength-1;
-			contentLength = fileLength - begin;
-		}
-		String contentRange = new StringBuffer("bytes ").append(begin)
-				.append("-").append(end).append("/").append(fileLength)
-				.toString();
-		resp.setHeader("Content-Range", contentRange);
-		resp.setStatus(javax.servlet.http.HttpServletResponse.SC_PARTIAL_CONTENT);
-		resp.addHeader("Content-Length", String.valueOf(contentLength)); 
-
-		OutputStream os = resp.getOutputStream();
-		OutputStream out = new BufferedOutputStream(os);
-		byte b[] = new byte[bufferSize];
-
-		readFile.seek(begin);
-		while (begin < end) {
-			int len = 0;
-			if (begin + bufferSize < end){
-				len = readFile.read(b);
-			} else {
-				len = readFile.read(b, 0,(int) (end - begin));
-			}
-			out.write(b, 0, len);
-			begin += len;
-		}
-		out.flush();
-		out.close();
-		os.close();
-	}
-	
-	public static void test(HttpServletRequest req,
-			HttpServletResponse resp) throws IOException{
-		File file = new File("f:/abc.mp4");
-		RandomAccessFile readFile =new RandomAccessFile(file, "r");
-		resp.reset();
-		resp.setHeader("Accept-Ranges", "bytes");
-		resp.addHeader("Content-Disposition","attachment; filename=\"" + file.getName() + "\"");
-		resp.setContentType(CommonUtil.setContentType(file.getName()));
-		int bufferSize = 1024;
-		long begin = 0;
-		long end = 0;
-		long fileLength = readFile.length();
-		long contentLength = 0;
-		String rangeBytes = req.getHeader("Range");
-		if (StringUtils.isNotBlank(rangeBytes)) {
-			rangeBytes = rangeBytes.trim();
-			rangeBytes = rangeBytes.replaceAll("bytes=", "");
-			String[] range = rangeBytes.split("-");
-			if (range.length == 1) {// bytes=969998336-
-				begin = Long.valueOf(range[0].trim());
-				end = fileLength-1;
-				contentLength = end - begin;
-			} else if (range.length == 2) {
-				begin = Long.valueOf(range[0].trim());
-				end = Long.valueOf(range[1].trim());
-				if(begin<end){
-					contentLength = end - begin + 1;
-				}else{
-					begin=0;
-					end=fileLength-1;
-					contentLength = fileLength - begin;
+					end=fileLength;
+					contentLength = end - begin;
 				}
 			}
 		} else {
 			begin=0;
 			end=fileLength;
-			contentLength = fileLength - begin;
+			contentLength = end - begin;
 		}
 		String contentRange = new StringBuffer("bytes ").append(begin)
-				.append("-").append(end).append("/").append(fileLength)
+				.append("-").append(end-1).append("/").append(fileLength)
 				.toString();
 		resp.setHeader("Content-Range", contentRange);
 		resp.setStatus(javax.servlet.http.HttpServletResponse.SC_PARTIAL_CONTENT);
@@ -152,9 +91,107 @@ public class ResourceService {
 			out.write(b, 0, len);
 			begin += len;
 		}
-		out.flush();
-		out.close();
-		os.close();
+		if(out!=null){
+			out.flush();
+			out.close();
+		}
+		if(os!=null)
+			os.close();
+		if(readFile!=null)
+			readFile.close();
+		
+	}
+	
+	public static void getFileLength(HttpServletRequest req,
+			HttpServletResponse resp, JsonNode reqData){
+		RandomAccessFile reader=null;
+		try {
+			String resourceid = reqData.get("resourceid").asText();
+			if (StringUtils.isBlank(resourceid)) {
+				RespUtils.commonResp(resp, RespUtils.CODE.FAIL,"resourceid can not empty.");
+			} else {
+				reader = new RandomAccessFile(resourceid, "r");
+				long length = reader.length();
+				Map<String, Long> result = new HashMap<String, Long>();
+				result.put("length", length);
+				RespUtils.jsonResp(resp, RespUtils.CODE.SUCCESS, result);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			RespUtils.commonResp(resp, RespUtils.CODE.EXCEPTION,"can not find resource");
+		}finally{
+			if(reader!=null){
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public static void test(HttpServletRequest req,
+			HttpServletResponse resp) throws IOException{File file = new File("g:/test.rmvb");
+			RandomAccessFile readFile =new RandomAccessFile(file, "r");
+			resp.reset();
+			resp.setHeader("Accept-Ranges", "bytes");
+			resp.addHeader("Content-Disposition","attachment; filename=\"" + file.getName() + "\"");
+			resp.setContentType(CommonUtil.setContentType(file.getName()));
+			int bufferSize = 1024;
+			long begin = 0;
+			long end = 0;
+			long fileLength = readFile.length();
+			long contentLength = 0;
+			String rangeBytes = req.getHeader("Range");
+			if (StringUtils.isNotBlank(rangeBytes)) {
+				rangeBytes = rangeBytes.trim();
+				rangeBytes = rangeBytes.replaceAll("bytes=", "");
+				String[] range = rangeBytes.split("-");
+				if (range.length == 1) {// bytes=969998336-
+					begin = Long.valueOf(range[0].trim());
+					end = fileLength;
+					contentLength = end - begin;
+				} else if (range.length == 2) {
+					begin = Long.valueOf(range[0].trim());
+					end = Long.valueOf(range[1].trim())+1;
+					if(begin<end){
+						contentLength = end - begin;
+					}else{
+						begin=0;
+						end=fileLength;
+						contentLength = end - begin;
+					}
+				}
+			} else {
+				begin=0;
+				end=fileLength;
+				contentLength = end - begin;
+			}
+			String contentRange = new StringBuffer("bytes ").append(begin)
+					.append("-").append(end-1).append("/").append(fileLength)
+					.toString();
+			resp.setHeader("Content-Range", contentRange);
+			resp.setStatus(javax.servlet.http.HttpServletResponse.SC_PARTIAL_CONTENT);
+			resp.addHeader("Content-Length", String.valueOf(contentLength)); 
+
+			OutputStream os = resp.getOutputStream();
+			OutputStream out = new BufferedOutputStream(os);
+			byte b[] = new byte[bufferSize];
+
+			readFile.seek(begin);
+			while (begin < end) {
+				int len = 0;
+				if (begin + bufferSize < end){
+					len = readFile.read(b);
+				} else {
+					len = readFile.read(b, 0,(int) (end - begin));
+				}
+				out.write(b, 0, len);
+				begin += len;
+			}
+			out.flush();
+			out.close();
+			os.close();
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {

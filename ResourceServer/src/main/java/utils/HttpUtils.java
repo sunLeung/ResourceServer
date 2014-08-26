@@ -1,9 +1,12 @@
 package utils;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map;
@@ -83,6 +86,116 @@ public class HttpUtils {
 			}
 		}
 		return result.toString();
+	}
+	
+	public static String doPost(String url, String body) {
+		PrintWriter out = null;
+		BufferedReader in = null;
+		StringBuffer result = new StringBuffer();
+		try {
+			URL realUrl = new URL(url);
+			URLConnection conn = realUrl.openConnection();
+			conn.setRequestProperty("accept", "*/*");
+			conn.setRequestProperty("connection", "Keep-Alive");
+			conn.setRequestProperty("user-agent","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setReadTimeout(2000);
+			out = new PrintWriter(conn.getOutputStream());
+			out.print(body);
+			out.flush();
+			in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			String line;
+			while ((line = in.readLine()) != null) {
+				result.append(line);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (out != null) {
+					out.close();
+				}
+				if (in != null) {
+					in.close();
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+		return result.toString();
+	}
+	
+	public static void doPost(String url,long begin,long end,String body,String recvFile) {
+		PrintWriter out = null;
+		BufferedInputStream bis = null;
+		RandomAccessFile writer=null;
+		long contentLength=end-begin+1;
+		contentLength=contentLength<0?0:contentLength;
+		try {
+			URL realUrl = new URL(url);
+			URLConnection conn = realUrl.openConnection();
+			conn.setRequestProperty("accept", "*/*");
+			conn.setRequestProperty("connection", "Keep-Alive");
+			conn.setRequestProperty("Range", "bytes="+begin+"-"+end);
+			conn.setRequestProperty("user-agent","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setReadTimeout(2000);
+			out = new PrintWriter(conn.getOutputStream());
+			out.print(body);
+			out.flush();
+			String contentRange=conn.getHeaderField("Content-Range");
+			if(StringUtils.isNotBlank(contentRange)){
+				System.out.println("contentRange:"+contentRange);
+				String range=contentRange.substring(contentRange.indexOf("bytes ")+6, contentRange.indexOf("/"));
+				String contentLengthStr=contentRange.substring(contentRange.indexOf("/")+1,contentRange.length());
+				String[] ranges=range.split("-");
+				begin=Long.valueOf(ranges[0].trim());
+				end=Long.valueOf(ranges[1].trim());
+				contentLength=Long.valueOf(contentLengthStr);
+			}
+			bis = new BufferedInputStream(conn.getInputStream(), 1024);
+			writer=new RandomAccessFile(recvFile, "rw");
+			writer.seek(begin);
+			byte[] buffer = new byte[1024];
+			int len=0;
+			long total=0;
+			while ((len=bis.read(buffer))!=-1) {
+				writer.write(buffer, 0, len);
+				total+=len;
+				System.out.println(((float)total/(float)contentLength)*100);
+			}
+			System.out.println("total:"+total);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (writer != null) {
+					writer.close();
+				}
+				if (bis != null) {
+					bis.close();
+				}
+				if (out != null) {
+					out.close();
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
+	
+	public static void main(String[] args) {
+		String contentRange="bytes 0-301704708/301704709";
+		String range=contentRange.substring(contentRange.indexOf("bytes ")+6, contentRange.indexOf("/"));
+		String contentLength=contentRange.substring(contentRange.indexOf("/")+1,contentRange.length());
+		String[] ranges=range.split("-");
+		long begin=Integer.valueOf(ranges[0].trim());
+		long end=Integer.valueOf(ranges[1].trim());
+		System.out.println(begin);
+		System.out.println(end);
+		System.out.println(contentLength);
 	}
 	
 	/**

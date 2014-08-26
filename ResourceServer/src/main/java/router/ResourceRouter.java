@@ -39,13 +39,15 @@ public class ResourceRouter extends HttpServlet{
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp){
 		try {
 			String postData=ReqUtils.getPostString(req);
-			ResourceService.test(req, resp);
-//			JsonNode json=JsonUtils.decode(postData);
-//			if(json!=null){
-//				ResourceService.downloadResource(req,resp,json);
-//			}else{
-//				RespUtils.commonResp(resp, RespUtils.CODE.FAIL, "Bad request params.");
-//			}
+			JsonNode json=JsonUtils.decode(postData);
+			String method=json.get("method").asText();
+			if("downloadResource".equals(method)){
+				ResourceService.downloadResource(req,resp,json);
+			}else if("getFileLength".equals(method)){
+				ResourceService.getFileLength(req, resp, json);
+			}else{
+				RespUtils.commonResp(resp, RespUtils.CODE.FAIL, "Bad request params.");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			log.error(e.toString());

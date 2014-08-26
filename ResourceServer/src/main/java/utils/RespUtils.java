@@ -31,6 +31,24 @@ public class RespUtils {
 			log.error(e.toString());
 		}
 	}
+	
+	public static void jsonResp(HttpServletResponse resp,int code, Object obj) {
+		jsonResp(resp,code, obj, DEFAULT_CONTENT_TYPE);
+	}
+	
+	public static void jsonResp(HttpServletResponse resp,int code, Object obj,
+			String contentType) {
+		try {
+			resp.setHeader("content-type", contentType);
+			String result = "{\"code\":%s,\"data\":%s}";
+			String json = JsonUtils.encode2Str(obj);
+			result = String.format(result, code, json);
+			resp.getWriter().write(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error(e.toString());
+		}
+	}
 
 	public static void commonResp(HttpServletResponse resp, int code, String msg) {
 		String result = "{\"code\":%s,\"msg\":%s}";

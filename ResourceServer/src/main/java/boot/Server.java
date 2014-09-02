@@ -1,8 +1,10 @@
-package config;
+package boot;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import config.Config;
+import logger.LoggerManger;
 import utils.TimerManagerUtils;
 
 public class Server implements ServletContextListener{
@@ -17,6 +19,7 @@ public class Server implements ServletContextListener{
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
 		//Init 
+		LoggerManger.initLoggerConfig(Config.LOGGER_CONFIG);
 	}
 
 }

@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import utils.ContentUtils;
+import utils.FileUtils;
 import utils.HttpUtils;
 import utils.JsonUtils;
 import utils.RespUtils;
@@ -23,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import config.Config;
 
 public class ResourceService {
-	private static String url = "http://127.0.0.1";
+	private static String url = "http://127.0.0.1:4002";
 	
 	public static boolean hasThisResource(int playerid,int resourceid){
 		try {
@@ -155,11 +156,13 @@ public class ResourceService {
 				RespUtils.commonResp(resp, 2,"Did not has this resource.");
 				return;
 			}
-			
-			reader = new RandomAccessFile(Config.RESOURCE_DIR+resourceid, "r");
+			File file=new File(Config.RESOURCE_DIR+resourceid);
+			reader = new RandomAccessFile(file, "r");
 			long length = reader.length();
-			Map<String, Long> result = new HashMap<String, Long>();
+			String md5=FileUtils.getFileMD5String(file);
+			Map<String, Object> result = new HashMap<String, Object>();
 			result.put("length", length);
+			result.put("md5", md5);
 			RespUtils.jsonResp(resp, 0, result);
 		} catch (Exception e) {
 			e.printStackTrace();

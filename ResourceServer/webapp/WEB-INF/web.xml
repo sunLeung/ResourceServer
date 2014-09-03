@@ -11,7 +11,7 @@
   </welcome-file-list>
   
   	<listener>
-		<listener-class>config.Server</listener-class>
+		<listener-class>boot.Server</listener-class>
 	</listener>
   
   <!-- router filter -->

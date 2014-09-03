@@ -14,21 +14,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class Test {
 	public static void main(String[] args) {
-		String url="http://127.0.0.1:8080/ResourceServer/res";
-		String file="g:/【66影视www.66ys.cc】超验骇客HD中字1280高清.mp4";
-		String saveFile="d:/【66影视www.66ys.cc】超验骇客HD中字1280高清.mp4";
+		String url="http://127.0.0.1:4000/res";
+		String saveFile="d:/a";
 		
-		
+		String srcMD5="";
 		Map<String,Object> params=new HashMap<String, Object>();
 		params.put("method", "getFileLength");
-		params.put("resourceid", 0);
-		params.put("playerid", 0);
+		params.put("resourceid", 1);
+		params.put("playerid", 1);
 		String r=HttpUtils.doPost(url, JsonUtils.encode2Str(params));
 		JsonNode result=JsonUtils.decode(r);
 		int threadCount=1;
 		if(result!=null&&JsonUtils.getInt("code", result)==0){
 			long length=result.get("data").get("length").asLong();
+			srcMD5=result.get("data").get("md5").asText();
 			System.out.println("file length:"+length);
+			System.out.println("file md5:"+srcMD5);
 			List<long[]> list=spiltFile(length, threadCount);
 			Map<String,Object> loadFileParams=new HashMap<String, Object>();
 			loadFileParams.put("method", "downloadResource");
@@ -45,9 +46,9 @@ public class Test {
 		
 		
 		try {
-			//校验文件
-			System.out.println(FileUtils.getFileMD5String(new File(file)));
-			System.out.println(FileUtils.getFileMD5String(new File(saveFile)));
+//			//校验文件
+//			System.out.println(FileUtils.getFileMD5String(new File(file)));
+//			System.out.println(FileUtils.getFileMD5String(new File(saveFile)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

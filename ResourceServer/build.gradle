@@ -23,3 +23,8 @@ uploadArchives {
 		flatDir { dirs 'repos' }
 	}
 }
+
+task copyJars(type: Copy) {
+	from configurations.runtime
+	into 'webapp/WEB-INF/lib'
+}

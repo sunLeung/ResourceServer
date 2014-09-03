@@ -1,8 +1,8 @@
-package test;
+package utils;
 
-public class CommonUtil {
+public class ContentUtils {
 
-	public static String setContentType(String returnFileName) {
+	public static String getContentType(String returnFileName) {
 		String contentType = "application/octet-stream";
 		if (returnFileName.lastIndexOf(".") < 0)
 			return contentType;

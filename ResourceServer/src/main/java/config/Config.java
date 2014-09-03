@@ -1,6 +1,5 @@
 package config;
 
-import java.io.File;
 
 /**
  * 
@@ -10,9 +9,10 @@ import java.io.File;
  * @version V1.0
  */
 public class Config {
-	public static String ROOT_DIR=System.getProperty("user.dir");
 	/**配置文件根目录*/
-	public static String CONFIG_DIR=System.getProperty("user.dir")+File.separator+"config"+File.separator;
+	public static String CONFIG_DIR="config";
+	/**资源文件根目录*/
+	public static String RESOURCE_DIR="resource";
 	/**守护线程运行间隔*/
 	public static int WATCH_SECOND=10;
 	/**日志配置文件*/

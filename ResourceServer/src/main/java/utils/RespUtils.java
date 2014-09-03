@@ -9,13 +9,6 @@ public class RespUtils {
 	private static Logger log = LoggerManger.getLogger();
 	private static final String DEFAULT_CONTENT_TYPE = "text/html;charset=UTF-8";
 
-	/** 返回码 */
-	public static final class CODE {
-		public static final int SUCCESS = 0;
-		public static final int FAIL = 1;
-		public static final int EXCEPTION = 2;
-	}
-
 	public static void jsonResp(HttpServletResponse resp, Object obj) {
 		jsonResp(resp, obj, DEFAULT_CONTENT_TYPE);
 	}

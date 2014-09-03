@@ -12,7 +12,6 @@ import logger.LoggerManger;
 import service.ResourceService;
 import utils.JsonUtils;
 import utils.ReqUtils;
-import utils.RespUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -42,12 +41,11 @@ public class ResourceRouter extends HttpServlet{
 			}else if("getFileLength".equals(method)){
 				ResourceService.getFileLength(req, resp, json);
 			}else{
-				RespUtils.commonResp(resp, RespUtils.CODE.FAIL, "Bad request params.");
+				resp.setStatus(400);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			log.error(e.toString());
-			RespUtils.commonResp(resp, RespUtils.CODE.EXCEPTION, "Bad request.");
 		}
 	}
 	

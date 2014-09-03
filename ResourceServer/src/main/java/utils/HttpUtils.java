@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map;
@@ -126,7 +127,8 @@ public class HttpUtils {
 		return result.toString();
 	}
 	
-	public static void doPost(String url,long begin,long end,String body,String recvFile) {
+	public static String doPost(String url,long begin,long end,String body,String recvFile) {
+		int status=-1;
 		PrintWriter out = null;
 		BufferedInputStream bis = null;
 		RandomAccessFile writer=null;
@@ -134,7 +136,7 @@ public class HttpUtils {
 		contentLength=contentLength<0?0:contentLength;
 		try {
 			URL realUrl = new URL(url);
-			URLConnection conn = realUrl.openConnection();
+			HttpURLConnection conn = (HttpURLConnection)realUrl.openConnection();
 			conn.setRequestProperty("accept", "*/*");
 			conn.setRequestProperty("connection", "Keep-Alive");
 			conn.setRequestProperty("Range", "bytes="+begin+"-"+end);
@@ -145,6 +147,10 @@ public class HttpUtils {
 			out = new PrintWriter(conn.getOutputStream());
 			out.print(body);
 			out.flush();
+			status=conn.getResponseCode();
+			if(status!=200&&status!=206){
+				return status+"";
+			}
 			String contentRange=conn.getHeaderField("Content-Range");
 			if(StringUtils.isNotBlank(contentRange)){
 				System.out.println("contentRange:"+contentRange);
@@ -184,6 +190,51 @@ public class HttpUtils {
 				ex.printStackTrace();
 			}
 		}
+		return status+"";
+	}
+	
+	public static String doPost(String url,Map<String,String> requestProperty, String body) {
+		PrintWriter out = null;
+		BufferedReader in = null;
+		StringBuffer result = new StringBuffer();
+		try {
+			URL realUrl = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection)realUrl.openConnection();
+			conn.setRequestProperty("accept", "*/*");
+			conn.setRequestProperty("connection", "Keep-Alive");
+			conn.setRequestProperty("user-agent","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+			if(requestProperty!=null)
+			for(Entry<String,String> entry:requestProperty.entrySet()){
+				conn.setRequestProperty(entry.getKey(), entry.getValue());
+			}
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setReadTimeout(5000);
+			out = new PrintWriter(conn.getOutputStream());
+			out.print(body);
+			out.flush();
+			if(conn.getResponseCode()==200){
+				in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				String line;
+				while ((line = in.readLine()) != null) {
+					result.append(line);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (out != null) {
+					out.close();
+				}
+				if (in != null) {
+					in.close();
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+		return result.toString();
 	}
 	
 	public static void main(String[] args) {

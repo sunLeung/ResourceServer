@@ -1,5 +1,7 @@
 package utils;
 
+import java.io.File;
+
 import javax.servlet.http.HttpServletResponse;
 
 import logger.Logger;
@@ -33,6 +35,7 @@ public class RespUtils {
 			String contentType) {
 		try {
 			resp.setHeader("content-type", contentType);
+			resp.setStatus(200);
 			String result = "{\"code\":%s,\"data\":%s}";
 			String json = JsonUtils.encode2Str(obj);
 			result = String.format(result, code, json);
@@ -43,11 +46,12 @@ public class RespUtils {
 		}
 	}
 
-	public static void commonResp(HttpServletResponse resp, int code, String msg) {
+	public static void commonResp(HttpServletResponse resp,int status,int code, String msg) {
 		String result = "{\"code\":%s,\"msg\":%s}";
 		try {
 			result = String.format(result, code, msg);
 			resp.setHeader("content-type", DEFAULT_CONTENT_TYPE);
+			resp.setStatus(status);
 			resp.getWriter().write(result);
 		} catch (Exception e) {
 			e.printStackTrace();

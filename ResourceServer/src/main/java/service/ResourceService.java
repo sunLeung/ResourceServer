@@ -2,7 +2,6 @@ package service;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -24,8 +23,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import config.Config;
 
 public class ResourceService {
-	private static String url = "http://127.0.0.1:4002";
+	private static String url = "http://127.0.0.1:4000";
 	
+	/**
+	 * 验证是否有权限下载
+	 * @param playerid
+	 * @param resourceid
+	 * @return
+	 */
 	public static boolean hasThisResource(int playerid,int resourceid){
 		try {
 			Map<String,String> requestProperty=new HashMap<String, String>();
@@ -50,19 +55,57 @@ public class ResourceService {
 		return false;
 	}
 
-	public static void downloadResource(HttpServletRequest req,
-			HttpServletResponse resp, JsonNode reqData) throws IOException {
-		System.out.println("downloadResource request");
-		int resourceid=JsonUtils.getInt("resourceid", reqData);
-		int playerid=JsonUtils.getInt("playerid",reqData);
-		if(resourceid==-1||playerid==-1){
-			RespUtils.commonResp(resp, 1,"Bad request.");
-			return;
-		}
-		
+	/**
+	 * 一次下载（小文件推荐）
+	 * @param deviceid
+	 * @param playerid
+	 * @param resourceid
+	 * @param req
+	 * @param resp
+	 */
+	public static void fullDownloadResource(String deviceid,int playerid,int resourceid,HttpServletRequest req, HttpServletResponse resp){
 		boolean isAuth=hasThisResource(playerid, resourceid);
 		if(!isAuth){
-			RespUtils.commonResp(resp, 2,"Did not has this resource.");
+			RespUtils.commonResp(resp,400, 2,"Did not has this resource.");
+			return;
+		}
+		try {
+			File file=new File(Config.RESOURCE_DIR+resourceid);
+			RandomAccessFile readFile =new RandomAccessFile(file, "r");
+			resp.setContentType(ContentUtils.getContentType(file.getName()));
+			byte[] b=new byte[1024];
+			int len=0;
+			OutputStream os = resp.getOutputStream();
+			OutputStream out = new BufferedOutputStream(os);
+			while((len=readFile.read(b))!=-1){
+				out.write(b,0,len);
+			}
+			if(out!=null){
+				out.flush();
+				out.close();
+			}
+			if(os!=null)
+				os.close();
+			if(readFile!=null)
+				readFile.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			RespUtils.commonResp(resp,400, 3,"can not find resource");
+		}
+	}
+	
+	/**
+	 * 随机下载（大文件推荐）
+	 * @param deviceid
+	 * @param playerid
+	 * @param resourceid
+	 * @param req
+	 * @param resp
+	 */
+	public static void randomDownloadResource(String deviceid,int playerid,int resourceid,HttpServletRequest req, HttpServletResponse resp){
+		boolean isAuth=hasThisResource(playerid, resourceid);
+		if(!isAuth){
+			RespUtils.commonResp(resp,400, 2,"Did not has this resource.");
 			return;
 		}
 		
@@ -136,24 +179,23 @@ public class ResourceService {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			resp.setStatus(400);
+			RespUtils.commonResp(resp,400, 3,"can not find resource");
 		}
 	}
 	
-	public static void getFileLength(HttpServletRequest req,
-			HttpServletResponse resp, JsonNode reqData){
+	/**
+	 * 获取文件信息
+	 * @param deviceid
+	 * @param playerid
+	 * @param resourceid
+	 * @param resp
+	 */
+	public static void getFileInfo(String deviceid,int playerid,int resourceid, HttpServletResponse resp){
 		RandomAccessFile reader=null;
 		try {
-			int resourceid=JsonUtils.getInt("resourceid", reqData);
-			int playerid=JsonUtils.getInt("playerid",reqData);
-			if(resourceid==-1||playerid==-1){
-				RespUtils.commonResp(resp, 1,"Bad request.");
-				return;
-			}
-			
 			boolean isAuth=hasThisResource(playerid, resourceid);
 			if(!isAuth){
-				RespUtils.commonResp(resp, 2,"Did not has this resource.");
+				RespUtils.commonResp(resp,400, 2,"Did not has this resource.");
 				return;
 			}
 			File file=new File(Config.RESOURCE_DIR+resourceid);
@@ -166,7 +208,7 @@ public class ResourceService {
 			RespUtils.jsonResp(resp, 0, result);
 		} catch (Exception e) {
 			e.printStackTrace();
-			RespUtils.commonResp(resp, 3,"can not find resource");
+			RespUtils.commonResp(resp,400, 3,"can not find resource");
 		}finally{
 			if(reader!=null){
 				try {

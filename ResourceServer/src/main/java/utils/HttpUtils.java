@@ -2,8 +2,8 @@ package utils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
@@ -235,6 +235,61 @@ public class HttpUtils {
 			}
 		}
 		return result.toString();
+	}
+	
+	public static String download(String url,Map<String,String> requestProperty, String body,File recvFile) {
+		int status=-1;
+		PrintWriter out = null;
+		BufferedInputStream bis = null;
+		RandomAccessFile writer=null;
+		try {
+			URL realUrl = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection)realUrl.openConnection();
+			conn.setRequestProperty("accept", "*/*");
+			conn.setRequestProperty("connection", "Keep-Alive");
+			conn.setRequestProperty("user-agent","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+			if(requestProperty!=null)
+			for(Entry<String,String> entry:requestProperty.entrySet()){
+				conn.setRequestProperty(entry.getKey(), entry.getValue());
+			}
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setReadTimeout(5000);
+			out = new PrintWriter(conn.getOutputStream());
+			out.print(body);
+			out.flush();
+			status=conn.getResponseCode();
+			if(status!=200&&status!=206){
+				return status+"";
+			}
+			bis=new BufferedInputStream(conn.getInputStream(),1024);
+			writer=new RandomAccessFile(recvFile, "rw");
+			byte[] b = new byte[1024];
+			int len=0;
+			long total=0;
+			while((len=bis.read(b))!=-1){
+				writer.write(b, 0, len);
+				total+=len;
+			}
+			System.out.println("total:"+total);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (writer != null) {
+					writer.close();
+				}
+				if (bis != null) {
+					bis.close();
+				}
+				if (out != null) {
+					out.close();
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+		return status+"";
 	}
 	
 	public static void main(String[] args) {

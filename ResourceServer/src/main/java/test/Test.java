@@ -3,44 +3,41 @@ package test;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.Map;
 
-import utils.FileUtils;
+import utils.HttpUtils;
+import utils.JsonUtils;
 
 public class Test {
+	private static String url="http://127.0.0.1:8080/res";
+	
 	public static void main(String[] args) throws IOException {
-//		System.out.println(MD5Util.getFileMD5String(new File("e:/abc.mp4")));
-		System.out.println(FileUtils.getFileMD5String(new File("d:/fucklll")));
-		System.out.println(FileUtils.getFileMD5String(new File("G:/test.rmvb")));
-//		System.out.println(MD5Util.getFileMD5String(new File("e:/abc2.mp4")));
-////		
-//		try {
-//			for(int i=0;i<5;i++){
-//			File f=new File("e:/test.zip");
-//			RandomAccessFile raf=new RandomAccessFile(f, "r");
-//			long filesize=raf.length();
-//			long begin=filesize/5*(i);
-//			long end=filesize/5*(i+1)-1;
-//			
-//			if(i==4){
-//				end=filesize;
-//			}
-//			System.out.println(i +"    "+begin+"-"+end);
-//			}
-//			
-//		} catch (Exception e) {
-//			// TODO: handle exception
-//		}
-//		
-//		for (int i = 0; i < 5; i++) {
-//			new Thread(new T2(i)).start();
-//		}
-//		
-//		new Thread(new T2(0)).start();
-//		new T2(0).run();
-//		new T2(1).run();
-//		new T2(2).run();
-//		new T2(3).run();
-//		new T2(4).run();
+//		getFileInfo();
+		fullDown();
+	}
+	
+	
+	public static void getFileInfo(){
+		Map<String,String> requestProperty=new HashMap<String, String>();
+		requestProperty.put("protocal", "0x02");
+		requestProperty.put("playerid", "1");
+		
+		Map<String,Object> body=new HashMap<String, Object>();
+		body.put("resourceid", 1);
+		String result=HttpUtils.doPost(url, requestProperty, JsonUtils.encode2Str(body));
+		System.out.println(result);
+	}
+	
+	public static void fullDown(){
+		Map<String,String> requestProperty=new HashMap<String, String>();
+		requestProperty.put("protocal", "0x00");
+		requestProperty.put("playerid", "1");
+		
+		Map<String,Object> body=new HashMap<String, Object>();
+		body.put("resourceid", 1);
+		String result=HttpUtils.download(url, requestProperty, JsonUtils.encode2Str(body),new File("d:/1"));
+		System.out.println(result);
 	}
 }
 

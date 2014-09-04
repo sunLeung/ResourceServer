@@ -12,6 +12,7 @@ import logger.LoggerManger;
 import service.ResourceService;
 import utils.JsonUtils;
 import utils.ReqUtils;
+import utils.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -33,18 +34,31 @@ public class ResourceRouter extends HttpServlet{
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp){
 		try {
+			String protocal=req.getHeader("protocal");
+			String deviceid=req.getHeader("deviceid");
+			int playerid=Integer.valueOf(req.getHeader("playerid"));
+			
 			String postData=ReqUtils.getPostString(req);
 			JsonNode json=JsonUtils.decode(postData);
-			String method=json.get("method").asText();
-			if("downloadResource".equals(method)){
-				ResourceService.downloadResource(req,resp,json);
-			}else if("getFileLength".equals(method)){
-				ResourceService.getFileLength(req, resp, json);
-			}else{
+			int resourceid=JsonUtils.getInt("resourceid",json);
+			
+			if(StringUtils.isBlank(protocal)||playerid<=0||resourceid==-1){
 				resp.setStatus(400);
+				return;
 			}
+			
+			if("0x00".equals(protocal.trim())){//下载整体文件（不支持断线重连）
+				ResourceService.fullDownloadResource(deviceid,playerid,resourceid,req,resp);
+				return;
+			}else if("0x01".equals(protocal.trim())){//下载部分文件（支持断线重连）
+				ResourceService.randomDownloadResource(deviceid,playerid,resourceid,req,resp);
+				return;
+			}else if("0x02".equals(protocal.trim())){//获取文件信息（文件大小，文件md5值）
+				ResourceService.getFileInfo(deviceid, playerid, resourceid, resp);
+				return;
+			}
+			resp.setStatus(400);
 		} catch (Exception e) {
-			e.printStackTrace();
 			log.error(e.toString());
 		}
 	}

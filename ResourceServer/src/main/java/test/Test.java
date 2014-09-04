@@ -6,15 +6,18 @@ import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.Map;
 
+import utils.FileUtils;
 import utils.HttpUtils;
 import utils.JsonUtils;
 
 public class Test {
-	private static String url="http://127.0.0.1:8080/res";
+	private static String url="http://115.28.234.110:5000/res";
 	
 	public static void main(String[] args) throws IOException {
 //		getFileInfo();
 		fullDown();
+//		System.out.println(FileUtils.getFileMD5String(new File("C:\\Users\\hacker\\git\\ResourceServer\\ResourceServer\\webapp\\WEB-INF\\resource\\1")));
+//		System.out.println(FileUtils.getFileMD5String(new File("D:\\1")));
 	}
 	
 	
@@ -22,6 +25,8 @@ public class Test {
 		Map<String,String> requestProperty=new HashMap<String, String>();
 		requestProperty.put("protocal", "0x02");
 		requestProperty.put("playerid", "1");
+		requestProperty.put("token", "9cf4d052296847f5a6037ab43e803803");
+		requestProperty.put("deviceid", "liangyuxin");
 		
 		Map<String,Object> body=new HashMap<String, Object>();
 		body.put("resourceid", 1);
@@ -33,6 +38,8 @@ public class Test {
 		Map<String,String> requestProperty=new HashMap<String, String>();
 		requestProperty.put("protocal", "0x00");
 		requestProperty.put("playerid", "1");
+		requestProperty.put("token", "9cf4d052296847f5a6037ab43e803803");
+		requestProperty.put("deviceid", "liangyuxin");
 		
 		Map<String,Object> body=new HashMap<String, Object>();
 		body.put("resourceid", 1);

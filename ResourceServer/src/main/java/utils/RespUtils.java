@@ -1,6 +1,7 @@
 package utils;
 
-import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -11,71 +12,39 @@ public class RespUtils {
 	private static Logger log = LoggerManger.getLogger();
 	private static final String DEFAULT_CONTENT_TYPE = "text/html;charset=UTF-8";
 
-	public static void jsonResp(HttpServletResponse resp, Object obj) {
-		jsonResp(resp, obj, DEFAULT_CONTENT_TYPE);
-	}
-
-	public static void jsonResp(HttpServletResponse resp, Object obj,
-			String contentType) {
+	public static void responseFail(HttpServletResponse resp,int status,int code, String msg) {
 		try {
-			resp.setHeader("content-type", contentType);
-			String json = JsonUtils.encode2Str(obj);
-			resp.getWriter().write(json);
-		} catch (Exception e) {
-			e.printStackTrace();
-			log.error(e.toString());
-		}
-	}
-	
-	public static void jsonResp(HttpServletResponse resp,int code, Object obj) {
-		jsonResp(resp,code, obj, DEFAULT_CONTENT_TYPE);
-	}
-	
-	public static void jsonResp(HttpServletResponse resp,int code, Object obj,
-			String contentType) {
-		try {
-			resp.setHeader("content-type", contentType);
-			resp.setStatus(200);
-			String result = "{\"code\":%s,\"data\":%s}";
-			String json = JsonUtils.encode2Str(obj);
-			result = String.format(result, code, json);
-			resp.getWriter().write(result);
-		} catch (Exception e) {
-			e.printStackTrace();
-			log.error(e.toString());
-		}
-	}
-
-	public static void commonResp(HttpServletResponse resp,int status,int code, String msg) {
-		String result = "{\"code\":%s,\"msg\":%s}";
-		try {
-			result = String.format(result, code, msg);
+			Map<String,Object> map=new HashMap<String, Object>();
+			map.put("code", code);
+			map.put("msg", msg);
+			String content=JsonUtils.encode2Str(map);
 			resp.setHeader("content-type", DEFAULT_CONTENT_TYPE);
 			resp.setStatus(status);
-			resp.getWriter().write(result);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void commonResp(HttpServletResponse resp, int code) {
-		String result = "{\"code\":%s}";
-		try {
-			result = String.format(result, code);
-			resp.setHeader("content-type", DEFAULT_CONTENT_TYPE);
-			resp.getWriter().write(result);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void stringResp(HttpServletResponse resp, String content) {
-		try {
-			resp.setHeader("content-type", DEFAULT_CONTENT_TYPE);
 			resp.getWriter().write(content);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
+	public static void responseFail(HttpServletResponse resp,int status,String content) {
+		try {
+			resp.setHeader("content-type", DEFAULT_CONTENT_TYPE);
+			resp.setStatus(status);
+			resp.getWriter().write(content);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	public static void responseSuccess(HttpServletResponse resp,Object obj) {
+		try {
+			Map<String,Object> map=new HashMap<String, Object>();
+			map.put("code", Def.CODE_SUCCESS);
+			map.put("data", obj);
+			String content=JsonUtils.encode2Str(map);
+			resp.setHeader("content-type", DEFAULT_CONTENT_TYPE);
+			resp.setStatus(200);
+			resp.getWriter().write(content);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

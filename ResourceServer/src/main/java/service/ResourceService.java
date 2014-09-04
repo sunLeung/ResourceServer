@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import utils.ContentUtils;
+import utils.Def;
 import utils.FileUtils;
 import utils.HttpUtils;
 import utils.JsonUtils;
@@ -23,26 +24,27 @@ import com.fasterxml.jackson.databind.JsonNode;
 import config.Config;
 
 public class ResourceService {
-	private static String url = "http://127.0.0.1:4000";
-	
 	/**
 	 * 验证是否有权限下载
 	 * @param playerid
 	 * @param resourceid
 	 * @return
 	 */
-	public static boolean hasThisResource(int playerid,int resourceid){
+	public static boolean hasThisResource(String token,String deviceid,int playerid,int resourceid,HttpServletResponse resp){
+		String result="{\"code\":-1,\"msg\":\"Connect game server to auth time out.\"}";
 		try {
 			Map<String,String> requestProperty=new HashMap<String, String>();
-			requestProperty.put("deviceid", "resourceserver");
-			requestProperty.put("protocol", "0x02");
+			requestProperty.put("deviceid", deviceid);
+			requestProperty.put("protocol", "0x0b");
 			requestProperty.put("playerid", playerid+"");
+			requestProperty.put("token", token);
 			
 			Map<String,Object> body = new HashMap<String, Object>();
 			body.put("resourceid", resourceid);
 			String data=JsonUtils.encode2Str(body);
-			String result=HttpUtils.doPost(url, requestProperty,data);
-			if(StringUtils.isNotBlank(result)){
+			String r=HttpUtils.doPost(Config.GAMESERVER_URL, requestProperty,data);
+			if(StringUtils.isNotBlank(r)){
+				result=r;
 				JsonNode node=JsonUtils.decode(result);
 				int code=node.get("code").asInt();
 				if(code==0){
@@ -50,8 +52,10 @@ public class ResourceService {
 				}
 			}
 		} catch (Exception e) {
+			RespUtils.responseFail(resp, 500, Def.CODE_EXCEPTION, "Check player resource catch exception.");
 			return false;
 		}
+		RespUtils.responseFail(resp, 500, result);
 		return false;
 	}
 
@@ -63,10 +67,9 @@ public class ResourceService {
 	 * @param req
 	 * @param resp
 	 */
-	public static void fullDownloadResource(String deviceid,int playerid,int resourceid,HttpServletRequest req, HttpServletResponse resp){
-		boolean isAuth=hasThisResource(playerid, resourceid);
+	public static void fullDownloadResource(String token,String deviceid,int playerid,int resourceid,HttpServletRequest req, HttpServletResponse resp){
+		boolean isAuth=hasThisResource(token,deviceid,playerid, resourceid,resp);
 		if(!isAuth){
-			RespUtils.commonResp(resp,400, 2,"Did not has this resource.");
 			return;
 		}
 		try {
@@ -90,7 +93,7 @@ public class ResourceService {
 				readFile.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			RespUtils.commonResp(resp,400, 3,"can not find resource");
+			RespUtils.responseFail(resp, 500, Def.CODE_EXCEPTION, "Download resource catch exception.");
 		}
 	}
 	
@@ -102,10 +105,9 @@ public class ResourceService {
 	 * @param req
 	 * @param resp
 	 */
-	public static void randomDownloadResource(String deviceid,int playerid,int resourceid,HttpServletRequest req, HttpServletResponse resp){
-		boolean isAuth=hasThisResource(playerid, resourceid);
+	public static void randomDownloadResource(String token,String deviceid,int playerid,int resourceid,HttpServletRequest req, HttpServletResponse resp){
+		boolean isAuth=hasThisResource(token,deviceid,playerid, resourceid,resp);
 		if(!isAuth){
-			RespUtils.commonResp(resp,400, 2,"Did not has this resource.");
 			return;
 		}
 		
@@ -179,7 +181,7 @@ public class ResourceService {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			RespUtils.commonResp(resp,400, 3,"can not find resource");
+			RespUtils.responseFail(resp, 500, Def.CODE_EXCEPTION, "Download resource catch exception.");
 		}
 	}
 	
@@ -190,12 +192,11 @@ public class ResourceService {
 	 * @param resourceid
 	 * @param resp
 	 */
-	public static void getFileInfo(String deviceid,int playerid,int resourceid, HttpServletResponse resp){
+	public static void getFileInfo(String token,String deviceid,int playerid,int resourceid, HttpServletResponse resp){
 		RandomAccessFile reader=null;
 		try {
-			boolean isAuth=hasThisResource(playerid, resourceid);
+			boolean isAuth=hasThisResource(token,deviceid,playerid, resourceid,resp);
 			if(!isAuth){
-				RespUtils.commonResp(resp,400, 2,"Did not has this resource.");
 				return;
 			}
 			File file=new File(Config.RESOURCE_DIR+resourceid);
@@ -205,10 +206,10 @@ public class ResourceService {
 			Map<String, Object> result = new HashMap<String, Object>();
 			result.put("length", length);
 			result.put("md5", md5);
-			RespUtils.jsonResp(resp, 0, result);
+			RespUtils.responseSuccess(resp, result);
 		} catch (Exception e) {
 			e.printStackTrace();
-			RespUtils.commonResp(resp,400, 3,"can not find resource");
+			RespUtils.responseFail(resp, 500, Def.CODE_EXCEPTION, "Getting resource data catch exception.");
 		}finally{
 			if(reader!=null){
 				try {

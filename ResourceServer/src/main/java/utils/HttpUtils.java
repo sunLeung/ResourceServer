@@ -209,16 +209,18 @@ public class HttpUtils {
 			}
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
-			conn.setReadTimeout(5000);
+//			conn.setReadTimeout(5000);
 			out = new PrintWriter(conn.getOutputStream());
 			out.print(body);
 			out.flush();
 			if(conn.getResponseCode()==200){
 				in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-				String line;
-				while ((line = in.readLine()) != null) {
-					result.append(line);
-				}
+			}else{
+				in = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+			}
+			String line;
+			while ((line = in.readLine()) != null) {
+				result.append(line);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -242,6 +244,7 @@ public class HttpUtils {
 		PrintWriter out = null;
 		BufferedInputStream bis = null;
 		RandomAccessFile writer=null;
+		BufferedReader br=null;
 		try {
 			URL realUrl = new URL(url);
 			HttpURLConnection conn = (HttpURLConnection)realUrl.openConnection();
@@ -259,49 +262,43 @@ public class HttpUtils {
 			out.print(body);
 			out.flush();
 			status=conn.getResponseCode();
-			if(status!=200&&status!=206){
-				return status+"";
+			if(status==200||status==206){
+				bis=new BufferedInputStream(conn.getInputStream(),1024);
+				writer=new RandomAccessFile(recvFile, "rw");
+				byte[] b = new byte[1024];
+				int len=0;
+				long total=0;
+				while((len=bis.read(b))!=-1){
+					writer.write(b, 0, len);
+					total+=len;
+				}
+				return "download finish total:"+total;
+			}else{
+				StringBuilder sb=new StringBuilder();
+				br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+				String line;
+				while ((line = br.readLine()) != null) {
+					sb.append(line);
+				}
+				return sb.toString();
 			}
-			bis=new BufferedInputStream(conn.getInputStream(),1024);
-			writer=new RandomAccessFile(recvFile, "rw");
-			byte[] b = new byte[1024];
-			int len=0;
-			long total=0;
-			while((len=bis.read(b))!=-1){
-				writer.write(b, 0, len);
-				total+=len;
-			}
-			System.out.println("total:"+total);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (writer != null) {
+				if (writer != null)
 					writer.close();
-				}
-				if (bis != null) {
+				if (bis != null)
 					bis.close();
-				}
-				if (out != null) {
+				if (out != null)
 					out.close();
-				}
+				if (br !=null)
+					br.close();
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
 		}
 		return status+"";
-	}
-	
-	public static void main(String[] args) {
-		String contentRange="bytes 0-301704708/301704709";
-		String range=contentRange.substring(contentRange.indexOf("bytes ")+6, contentRange.indexOf("/"));
-		String contentLength=contentRange.substring(contentRange.indexOf("/")+1,contentRange.length());
-		String[] ranges=range.split("-");
-		long begin=Integer.valueOf(ranges[0].trim());
-		long end=Integer.valueOf(ranges[1].trim());
-		System.out.println(begin);
-		System.out.println(end);
-		System.out.println(contentLength);
 	}
 	
 	/**

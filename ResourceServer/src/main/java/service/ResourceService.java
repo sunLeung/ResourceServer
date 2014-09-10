@@ -111,6 +111,7 @@ public class ResourceService {
 			OutputStream out = new BufferedOutputStream(os);
 			while((len=readFile.read(b))!=-1){
 				out.write(doMix(b, key),0,len);
+//				out.write(b,0,len);
 			}
 			if(out!=null){
 				out.flush();
@@ -247,7 +248,7 @@ public class ResourceService {
 				JsonNode node=JsonUtils.decode(authDate);
 				int code=JsonUtils.getInt("code", node);
 				if(code==0){
-					secret=JsonUtils.getString("secret", node);
+					secret=node.get("data").get("secret").asText();
 				}else{
 					RespUtils.responseFail(resp, 500, authDate);
 					return;
@@ -261,7 +262,7 @@ public class ResourceService {
 			File file=new File(Config.RESOURCE_DIR+resourceid);
 			reader = new RandomAccessFile(file, "r");
 			long length = reader.length();
-			String md5=FileUtils.getFileMD5String(file);
+			String md5=FileUtils.getFileMD5StringEncode(file,secret);
 			Map<String, Object> result = new HashMap<String, Object>();
 			result.put("length", length);
 			result.put("md5", md5);

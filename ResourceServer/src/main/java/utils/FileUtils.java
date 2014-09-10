@@ -12,6 +12,8 @@ import java.io.OutputStreamWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import service.ResourceService;
+
 public class FileUtils {
 	private static String defaultCharset="utf-8";
 	
@@ -96,6 +98,19 @@ public class FileUtils {
 		int numRead = 0;
 		while ((numRead = fis.read(buffer)) > 0) {
 			messagedigest.update(buffer, 0, numRead);
+		}
+		fis.close();
+		return bufferToHex(messagedigest.digest());
+	}
+	
+	public static String getFileMD5StringEncode(File file,String key) throws IOException {
+		InputStream fis;
+		fis = new FileInputStream(file);
+		byte[] buffer = new byte[1024];
+		int numRead = 0;
+		byte[] keys=key.getBytes();
+		while ((numRead = fis.read(buffer)) > 0) {
+			messagedigest.update(ResourceService.doMix(buffer, keys), 0, numRead);
 		}
 		fis.close();
 		return bufferToHex(messagedigest.digest());

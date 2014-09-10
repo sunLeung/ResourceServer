@@ -45,6 +45,8 @@ public class ResourceRouter extends HttpServlet{
 			JsonNode json=JsonUtils.decode(postData);
 			int resourceid=JsonUtils.getInt("resourceid",json);
 			
+			System.out.println("fuck test>>>>"+protocol+":"+token+":"+playerid+":"+resourceid);
+			
 			if(StringUtils.isBlank(protocol)||StringUtils.isBlank(token)||playerid<=0||resourceid==-1){
 				RespUtils.responseFail(resp, 500,Def.CODE_FAIL, "Parse request data fail.");
 				return;

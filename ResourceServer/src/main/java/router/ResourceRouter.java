@@ -36,7 +36,7 @@ public class ResourceRouter extends HttpServlet{
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp){
 		try {
-			String protocal=req.getHeader("protocal");
+			String protocol=req.getHeader("protocol");
 			String deviceid=req.getHeader("deviceid");
 			String token=req.getHeader("token");
 			int playerid=Integer.valueOf(req.getHeader("playerid"));
@@ -45,18 +45,18 @@ public class ResourceRouter extends HttpServlet{
 			JsonNode json=JsonUtils.decode(postData);
 			int resourceid=JsonUtils.getInt("resourceid",json);
 			
-			if(StringUtils.isBlank(protocal)||StringUtils.isBlank(token)||playerid<=0||resourceid==-1){
+			if(StringUtils.isBlank(protocol)||StringUtils.isBlank(token)||playerid<=0||resourceid==-1){
 				RespUtils.responseFail(resp, 500,Def.CODE_FAIL, "Parse request data fail.");
 				return;
 			}
 			
-			if("0x00".equals(protocal.trim())){//下载整体文件（不支持断线重连）
+			if("0x00".equals(protocol.trim())){//下载整体文件（不支持断线重连）
 				ResourceService.fullDownloadResource(token,deviceid,playerid,resourceid,req,resp);
 				return;
-			}else if("0x01".equals(protocal.trim())){//下载部分文件（支持断线重连）
+			}else if("0x01".equals(protocol.trim())){//下载部分文件（支持断线重连）
 				ResourceService.randomDownloadResource(token,deviceid,playerid,resourceid,req,resp);
 				return;
-			}else if("0x02".equals(protocal.trim())){//获取文件信息（文件大小，文件md5值）
+			}else if("0x02".equals(protocol.trim())){//获取文件信息（文件大小，文件md5值）
 				ResourceService.getFileInfo(token,deviceid, playerid, resourceid, resp);
 				return;
 			}

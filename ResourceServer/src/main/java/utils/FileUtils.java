@@ -110,7 +110,7 @@ public class FileUtils {
 		int numRead = 0;
 		byte[] keys=key.getBytes();
 		while ((numRead = fis.read(buffer)) > 0) {
-			messagedigest.update(ResourceService.doMix(buffer, keys), 0, numRead);
+			messagedigest.update(doMix(buffer, keys), 0, numRead);
 		}
 		fis.close();
 		return bufferToHex(messagedigest.digest());
@@ -134,5 +134,18 @@ public class FileUtils {
 		char c1 = hexDigits[bt & 0xf];
 		stringbuffer.append(c0);
 		stringbuffer.append(c1);
+	}
+	
+	/**
+	 * 加/解密文件
+	 * @param src
+	 * @param key
+	 * @return
+	 */
+	public static byte[] doMix(byte[] src,byte[] key){
+		for(int i=0;i<src.length;i++){
+			src[i]^=key[i%32];
+		}
+		return src;
 	}
 }

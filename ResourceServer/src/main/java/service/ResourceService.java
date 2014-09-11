@@ -24,18 +24,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import config.Config;
 
 public class ResourceService {
-	/**
-	 * 加/解密文件
-	 * @param src
-	 * @param key
-	 * @return
-	 */
-	public static byte[] doMix(byte[] src,byte[] key){
-		for(int i=0;i<src.length;i++){
-			src[i]^=key[i%32];
-		}
-		return src;
-	}
 	
 	/**
 	 * 获取资源验证
@@ -57,6 +45,7 @@ public class ResourceService {
 			
 			Map<String,Object> body = new HashMap<String, Object>();
 			body.put("resourceid", resourceid);
+			body.put("action", "checkResourceAuth");
 			String data=JsonUtils.encode2Str(body);
 			String r=HttpUtils.doPost(Config.GAMESERVER_URL, requestProperty,data);
 			if(StringUtils.isNotBlank(r)){
@@ -110,7 +99,7 @@ public class ResourceService {
 			OutputStream os = resp.getOutputStream();
 			OutputStream out = new BufferedOutputStream(os);
 			while((len=readFile.read(b))!=-1){
-				out.write(doMix(b, key),0,len);
+				out.write(FileUtils.doMix(b, key),0,len);
 //				out.write(b,0,len);
 			}
 			if(out!=null){

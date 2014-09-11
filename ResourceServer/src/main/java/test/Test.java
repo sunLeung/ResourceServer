@@ -17,7 +17,7 @@ public class Test {
 //		getFileInfo();
 //		fullDown();
 //		
-		System.out.println(FileUtils.getFileMD5String(new File("D:\\1")));
+//		System.out.println(FileUtils.getFileMD5String(new File("D:\\1")));
 //		System.out.println(FileUtils.getFileMD5String(new File("D:\\songname")));
 	}
 	

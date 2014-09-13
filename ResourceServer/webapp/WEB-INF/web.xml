@@ -35,11 +35,11 @@
   </servlet-mapping>
   
   <servlet>
-  	<servlet-name>test</servlet-name>
-  	<servlet-class>test.ArcSyncHttpDownloadServlet</servlet-class>
+  	<servlet-name>adminRouter</servlet-name>
+  	<servlet-class>router.AdminRouter</servlet-class>
   </servlet>
   <servlet-mapping>
-  	<servlet-name>test</servlet-name>
-  	<url-pattern>/test</url-pattern>
+  	<servlet-name>adminRouter</servlet-name>
+  	<url-pattern>/admin</url-pattern>
   </servlet-mapping>
 </web-app>

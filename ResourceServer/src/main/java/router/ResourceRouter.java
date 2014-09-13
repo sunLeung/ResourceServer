@@ -19,7 +19,7 @@ import utils.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * 资源下载路由器
+ * 管理员操作路由
  * @author liangyx
  *
  */

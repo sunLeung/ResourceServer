@@ -39,6 +39,7 @@ public class AdminRouter extends HttpServlet{
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp){
 		try {
+			System.out.println("received admin request.");
 			String security=req.getHeader("security");
 			String action=req.getHeader("action");
 			String resourceid=req.getHeader("resourceid");

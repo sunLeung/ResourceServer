@@ -12,15 +12,27 @@ import utils.JsonUtils;
 
 public class Test {
 	private static String url="http://115.28.234.110:5000/res";
+	private static String adminURL="http://127.0.0.1:8080/admin";
 	
 	public static void main(String[] args) throws IOException {
 //		getFileInfo();
 //		fullDown();
 //		
-//		System.out.println(FileUtils.getFileMD5String(new File("D:\\1")));
-//		System.out.println(FileUtils.getFileMD5String(new File("D:\\songname")));
+		System.out.println(FileUtils.getFileMD5String(new File("D:\\fuck.txt")));
+//		System.out.println(FileUtils.getFileMD5String(new File("C:/Users/hacker/git/ResourceServer/ResourceServer/webapp/WEB-INF/resource/2")));
+		upload();
 	}
 	
+	public static void upload(){
+		File file=new File("d:/fuck.txt");
+		Map<String,String> requestProperty=new HashMap<String, String>();
+		requestProperty.put("security", "himan");
+		requestProperty.put("action", "upload");
+		requestProperty.put("resourceid", "2");
+		requestProperty.put("isReplace", "true");
+		String a=HttpUtils.upload(adminURL, requestProperty, file);
+		System.out.println(a);
+	}
 	
 	public static void getFileInfo(){
 		Map<String,String> requestProperty=new HashMap<String, String>();

@@ -1,10 +1,14 @@
 package utils;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
@@ -299,6 +303,56 @@ public class HttpUtils {
 			}
 		}
 		return status+"";
+	}
+	
+	public static String upload(String url,Map<String,String> requestProperty,File file){
+		FileInputStream fis=null;
+		BufferedOutputStream bos=null;
+		BufferedReader br=null;
+		StringBuilder result=new StringBuilder();
+		try {
+			URL realUrl = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection)realUrl.openConnection();
+			conn.setRequestProperty("accept", "*/*");
+			conn.setRequestProperty("connection", "Keep-Alive");
+			conn.setRequestProperty("user-agent","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+			if(requestProperty!=null)
+			for(Entry<String,String> entry:requestProperty.entrySet()){
+				conn.setRequestProperty(entry.getKey(), entry.getValue());
+			}
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setReadTimeout(5000);
+			fis=new FileInputStream(file);
+			bos=new BufferedOutputStream(conn.getOutputStream());
+			byte[] b=new byte[1024];
+			int len=0;
+			while((len=fis.read(b))!=-1){
+				bos.write(b, 0, len);
+			}
+			bos.flush();
+			if(conn.getResponseCode()==200){
+				br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			}else{
+				br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+			}
+			String line;
+			while ((line = br.readLine()) != null) {
+				result.append(line);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (bos != null)
+					bos.close();
+				if (fis !=null)
+					fis.close();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+		return result.toString();
 	}
 	
 	/**
